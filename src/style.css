@@ -21,6 +21,45 @@ body {
   display: block;
 }
 
+.tabs {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(18, 18, 22, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  z-index: 10;
+}
+
+.tab {
+  padding: 8px 22px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(232, 230, 227, 0.6);
+  font-size: 14px;
+  font-family: inherit;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.tab:hover {
+  color: rgba(232, 230, 227, 0.9);
+}
+
+.tab.active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
 .title {
   position: fixed;
   left: 28px;
@@ -33,7 +72,7 @@ body {
   font-size: 28px;
   font-weight: 600;
   letter-spacing: 2px;
-  background: linear-gradient(180deg, #fff, #ffb26b);
+  background: linear-gradient(180deg, #fff, #a8c0d8);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
