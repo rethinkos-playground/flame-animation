@@ -1,7 +1,8 @@
-# Flame & River 🔥🌊
+# Flame, River & Water Tank 🔥🌊💧
 
 Interactive procedural animations built with **TypeScript + Three.js**. Switch between a
-burning **flame** and a flowing **river** using the tabs at the top of the page.
+burning **flame**, a flowing **river**, and a draggable **water tank** using the tabs at the
+top of the page.
 
 🔗 **Live demo**: https://rethinkos-playground.github.io/flame-animation/
 
@@ -9,9 +10,11 @@ burning **flame** and a flowing **river** using the tabs at the top of the page.
 
 - **Flame** — GLSL FBM-noise fire that rises, sways and flickers, with rising ember particles
 - **River** — winding river with advected flow, depth shading, specular glints and terrain banks
+- **Water Tank** — a glass tank you can **drag** around; the water sloshes in response, simulated
+  with a 1D wave-equation heightfield driven by the tank's acceleration (waves reflect off the walls)
 - Tab switcher in the header; each scene keeps its own settings
-- Adjustable **color** (color picker + 5 presets), **size/width** and **speed** per scene
-- Responsive layout, mobile friendly
+- Adjustable **color** (color picker + 5 presets), **size/level** and **speed** per scene
+- Responsive layout, mobile friendly (touch drag supported)
 
 ## Local development
 

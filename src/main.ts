@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Flame } from './flame';
 import { Sparks } from './sparks';
 import { River } from './river';
+import { WaterTank } from './tank';
 
 // Keep picker hex values as-is in shaders (no linear conversion).
 THREE.ColorManagement.enabled = false;
@@ -14,6 +15,10 @@ interface Animation {
   setSize(value: number): void;
   resize(bufferWidth: number, bufferHeight: number, halfHeight: number): void;
   update(dt: number, speed: number): void;
+  pointerDown?(x: number, y: number): boolean;
+  pointerMove?(x: number, y: number): void;
+  pointerUp?(): void;
+  contains?(x: number, y: number): boolean;
 }
 
 class FlameAnimation implements Animation {
@@ -70,6 +75,47 @@ class RiverAnimation implements Animation {
 
   update(dt: number, speed: number): void {
     this.river.update(dt, speed);
+  }
+}
+
+class TankAnimation implements Animation {
+  readonly root: THREE.Object3D;
+  private readonly tank = new WaterTank();
+
+  constructor() {
+    this.root = this.tank.mesh;
+  }
+
+  setColor(hex: string): void {
+    this.tank.setColor(hex);
+  }
+
+  setSize(value: number): void {
+    this.tank.setSize(value);
+  }
+
+  resize(bufferWidth: number, bufferHeight: number): void {
+    this.tank.setResolution(bufferWidth, bufferHeight);
+  }
+
+  update(dt: number, speed: number): void {
+    this.tank.update(dt, speed);
+  }
+
+  pointerDown(x: number, y: number): boolean {
+    return this.tank.pointerDown(x, y);
+  }
+
+  pointerMove(x: number, y: number): void {
+    this.tank.pointerMove(x, y);
+  }
+
+  pointerUp(): void {
+    this.tank.pointerUp();
+  }
+
+  contains(x: number, y: number): boolean {
+    return this.tank.contains(x, y);
   }
 }
 
@@ -163,6 +209,27 @@ const tabs: Tab[] = [
     new RiverAnimation(),
     { color: '#2f9bff', size: 1, speed: 1 },
   ),
+  makeTab(
+    {
+      id: 'tank',
+      label: 'Water Tank',
+      tagline: 'Drag the tank · sloshing water simulation',
+      colorLabel: 'Water Color',
+      sizeLabel: 'Water Level',
+      speedLabel: 'Wave Speed',
+      presets: [
+        { color: '#2f9bff', name: 'Blue' },
+        { color: '#16c8c8', name: 'Teal' },
+        { color: '#35d07f', name: 'Emerald' },
+        { color: '#8a6bff', name: 'Violet' },
+        { color: '#ff8a5c', name: 'Sunset' },
+      ],
+      size: { min: 0.2, max: 0.85, step: 0.01 },
+      speed: { min: 0.2, max: 3, step: 0.01 },
+    },
+    new TankAnimation(),
+    { color: '#2f9bff', size: 0.55, speed: 1 },
+  ),
 ];
 
 let activeTab = tabs[0];
@@ -197,6 +264,9 @@ function renderTabs(): void {
 
 function selectTab(tab: Tab): void {
   if (tab === activeTab) return;
+  activeTab.animation.pointerUp?.();
+  pointerDragging = false;
+  canvas.style.cursor = 'default';
   activeTab = tab;
   renderTabs();
   renderPanel();
@@ -271,6 +341,48 @@ renderTabs();
 renderPanel();
 titleName.textContent = activeTab.label;
 titleTagline.textContent = activeTab.tagline;
+
+// --- Pointer interaction (draggable tank) ------------------------------
+
+let pointerDragging = false;
+
+function toUV(event: PointerEvent): { x: number; y: number } {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const m = Math.min(width, height);
+  return {
+    x: (2 * event.clientX - width) / m,
+    y: (height - 2 * event.clientY) / m,
+  };
+}
+
+canvas.addEventListener('pointerdown', (event) => {
+  const { x, y } = toUV(event);
+  if (activeTab.animation.pointerDown?.(x, y)) {
+    pointerDragging = true;
+    canvas.setPointerCapture(event.pointerId);
+    canvas.style.cursor = 'grabbing';
+  }
+});
+
+canvas.addEventListener('pointermove', (event) => {
+  const { x, y } = toUV(event);
+  if (pointerDragging) {
+    activeTab.animation.pointerMove?.(x, y);
+  } else {
+    canvas.style.cursor = activeTab.animation.contains?.(x, y) ? 'grab' : 'default';
+  }
+});
+
+function endDrag(): void {
+  if (!pointerDragging) return;
+  pointerDragging = false;
+  activeTab.animation.pointerUp?.();
+  canvas.style.cursor = 'default';
+}
+
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
 
 // --- Resize / render loop ----------------------------------------------
 
