@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>火焰 · Flame</title>
+    <title>Flame</title>
     <meta name="description" content="Interactive flame animation — TypeScript + Three.js" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
@@ -11,32 +11,32 @@
     <canvas id="scene"></canvas>
 
     <header class="title">
-      <h1>火焰</h1>
-      <p>TypeScript + Three.js 程序化火焰</p>
+      <h1>Flame</h1>
+      <p>Procedural flame · TypeScript + Three.js</p>
     </header>
 
     <aside class="panel" id="panel">
       <div class="panel-row">
-        <label for="color">火焰颜色</label>
+        <label for="color">Flame Color</label>
         <div class="color-line">
           <input type="color" id="color" value="#ff6a00" />
           <div class="swatches" id="swatches">
-            <button class="swatch active" data-color="#ff6a00" style="--c:#ff6a00" title="橙"></button>
-            <button class="swatch" data-color="#38b6ff" style="--c:#38b6ff" title="蓝"></button>
-            <button class="swatch" data-color="#46ff9a" style="--c:#46ff9a" title="绿"></button>
-            <button class="swatch" data-color="#b06bff" style="--c:#b06bff" title="紫"></button>
-            <button class="swatch" data-color="#ff4f8b" style="--c:#ff4f8b" title="粉"></button>
+            <button class="swatch active" data-color="#ff6a00" style="--c:#ff6a00" title="Orange"></button>
+            <button class="swatch" data-color="#38b6ff" style="--c:#38b6ff" title="Blue"></button>
+            <button class="swatch" data-color="#46ff9a" style="--c:#46ff9a" title="Green"></button>
+            <button class="swatch" data-color="#b06bff" style="--c:#b06bff" title="Purple"></button>
+            <button class="swatch" data-color="#ff4f8b" style="--c:#ff4f8b" title="Pink"></button>
           </div>
         </div>
       </div>
 
       <div class="panel-row">
-        <label for="size">火焰大小 <span class="value" id="size-value">1.00</span></label>
+        <label for="size">Flame Size <span class="value" id="size-value">1.00</span></label>
         <input type="range" id="size" min="0.4" max="2.2" step="0.01" value="1" />
       </div>
 
       <div class="panel-row">
-        <label for="speed">燃烧速度 <span class="value" id="speed-value">1.00</span></label>
+        <label for="speed">Burn Speed <span class="value" id="speed-value">1.00</span></label>
         <input type="range" id="speed" min="0.2" max="3" step="0.01" value="1" />
       </div>
     </aside>
