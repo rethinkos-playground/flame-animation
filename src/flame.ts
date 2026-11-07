@@ -87,6 +87,7 @@ const fragmentShader = /* glsl */ `
     float energy = flame + glow + ground;
 
     gl_FragColor = vec4(col * energy + uColor * (glow + ground) * 0.6, 1.0);
+    #include <colorspace_fragment>
   }
 `;
 

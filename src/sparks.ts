@@ -26,6 +26,7 @@ const fragmentShader = /* glsl */ `
     float d = length(gl_PointCoord - 0.5);
     float a = smoothstep(0.5, 0.05, d) * vAlpha;
     gl_FragColor = vec4((uColor + vec3(0.25)) * a, a);
+    #include <colorspace_fragment>
   }
 `;
 

@@ -1,16 +1,20 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Flame } from './flame';
 import { Sparks } from './sparks';
 import { River } from './river';
 import { WaterTank } from './tank';
 
-// Keep picker hex values as-is in shaders (no linear conversion).
-THREE.ColorManagement.enabled = false;
+// Physically-correct sRGB/linear workflow (custom shaders below include the
+// output color-space conversion so they stay consistent with PBR materials).
+THREE.ColorManagement.enabled = true;
 
 // --- Animation abstraction ---------------------------------------------
 
 interface Animation {
   readonly root: THREE.Object3D;
+  readonly static?: THREE.Object3D;
+  readonly camera?: THREE.Camera;
   setColor(hex: string): void;
   setSize(value: number): void;
   resize(bufferWidth: number, bufferHeight: number, halfHeight: number): void;
@@ -80,10 +84,14 @@ class RiverAnimation implements Animation {
 
 class TankAnimation implements Animation {
   readonly root: THREE.Object3D;
+  readonly static: THREE.Object3D;
+  readonly camera: THREE.Camera;
   private readonly tank = new WaterTank();
 
   constructor() {
-    this.root = this.tank.mesh;
+    this.root = this.tank.root;
+    this.static = this.tank.static;
+    this.camera = this.tank.camera;
   }
 
   setColor(hex: string): void {
@@ -95,7 +103,7 @@ class TankAnimation implements Animation {
   }
 
   resize(bufferWidth: number, bufferHeight: number): void {
-    this.tank.setResolution(bufferWidth, bufferHeight);
+    this.tank.resize(bufferWidth, bufferHeight);
   }
 
   update(dt: number, speed: number): void {
@@ -160,6 +168,7 @@ function makeTab(
 ): Tab {
   const scene = new THREE.Scene();
   scene.add(animation.root);
+  if (animation.static) scene.add(animation.static);
   const state = { ...defaults };
   animation.setColor(state.color);
   animation.setSize(state.size);
@@ -240,9 +249,21 @@ const canvas = document.querySelector<HTMLCanvasElement>('#scene')!;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setClearColor(0x050505, 1);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 
 const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
 camera.position.z = 5;
+
+// Image-based lighting for the physically-based water tank scene.
+const tankTab = tabs.find((tab) => tab.id === 'tank')!;
+const pmrem = new THREE.PMREMGenerator(renderer);
+tankTab.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+tankTab.scene.background = new THREE.Color(0x0b0f14);
+tankTab.scene.fog = new THREE.Fog(0x0b0f14, 16, 38);
+pmrem.dispose();
 
 // --- UI -----------------------------------------------------------------
 
@@ -346,18 +367,15 @@ titleTagline.textContent = activeTab.tagline;
 
 let pointerDragging = false;
 
-function toUV(event: PointerEvent): { x: number; y: number } {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  const m = Math.min(width, height);
+function toNDC(event: PointerEvent): { x: number; y: number } {
   return {
-    x: (2 * event.clientX - width) / m,
-    y: (height - 2 * event.clientY) / m,
+    x: (event.clientX / window.innerWidth) * 2 - 1,
+    y: -(event.clientY / window.innerHeight) * 2 + 1,
   };
 }
 
 canvas.addEventListener('pointerdown', (event) => {
-  const { x, y } = toUV(event);
+  const { x, y } = toNDC(event);
   if (activeTab.animation.pointerDown?.(x, y)) {
     pointerDragging = true;
     canvas.setPointerCapture(event.pointerId);
@@ -366,7 +384,7 @@ canvas.addEventListener('pointerdown', (event) => {
 });
 
 canvas.addEventListener('pointermove', (event) => {
-  const { x, y } = toUV(event);
+  const { x, y } = toNDC(event);
   if (pointerDragging) {
     activeTab.animation.pointerMove?.(x, y);
   } else {
@@ -415,5 +433,5 @@ const clock = new THREE.Clock();
 renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.05);
   activeTab.animation.update(dt, activeTab.state.speed);
-  renderer.render(activeTab.scene, camera);
+  renderer.render(activeTab.scene, activeTab.animation.camera ?? camera);
 });

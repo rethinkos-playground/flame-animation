@@ -91,6 +91,7 @@ const fragmentShader = /* glsl */ `
     col *= 1.0 - 0.35 * dot(uv * 0.5, uv * 0.5);
 
     gl_FragColor = vec4(col, 1.0);
+    #include <colorspace_fragment>
   }
 `;
 
